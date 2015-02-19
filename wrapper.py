@@ -1,7 +1,7 @@
 import re
 import sublime
 import sublime_plugin
-class ConsolewrapCommand(sublime_plugin.TextCommand):
+class WrapperCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         view = self.view
         cursor = view.sel()[0]
@@ -27,7 +27,7 @@ class ConsolewrapCommand(sublime_plugin.TextCommand):
                 sublime.status_message('Please make a selection or copy something.')
             else:
                 var_text_escaped = var_text.replace("'", "\\'")
-                text = ConsolewrapCommand.get_wrapper(extension, match.group(1), var_text, var_text_escaped)
+                text = WrapperCommand.get_wrapper(extension, match.group(1), var_text, var_text_escaped)
                 view.insert(edit, line_region.end(), text)
                 end = view.line(line_region.end() + 1).end()
                 view.sel().clear()
@@ -39,6 +39,8 @@ class ConsolewrapCommand(sublime_plugin.TextCommand):
             return "\n%sputs '-----------------------------[log][auto][%s]:';p %s" % (spaces, var_text_escaped, var_text)
         elif lang == 'erb':
             return "\n%s<%% puts '-----------------------------[log][auto][%s]:';p %s %%>" % (spaces, var_text_escaped, var_text)
+        elif lang == 'php' or lang == 'ctp':
+            return "\npr(%s)" % (var_text)
         else:
             return "\n%sconsole.log('%s ' , %s);" % (spaces, var_text_escaped, var_text)
 
@@ -49,7 +51,7 @@ class ConsoleremoveCommand(sublime_plugin.TextCommand):
         cursor = self.view.sel()[0]
         line_region = self.view.line(cursor)
         string = self.view.substr(line_region)
-        newstring = re.sub(r"(?m)^((?!//|/\*).)*console\.log.*", '', string)
+        newstring = re.sub(r"(?m)^((?!//|/\*).)*pr\.log.*", '', string)
         self.view.replace(edit, line_region, newstring)
         self.view.sel().clear()
 
